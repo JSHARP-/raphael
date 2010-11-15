@@ -1665,6 +1665,12 @@
             }
             return this;
         };
+        Element[proto].appendChild = function (child) {
+            if (this.removed) {
+                return this;
+            }
+            this.node.appendChild(child);
+        };
         Element[proto].insertAfter = function (element) {
             if (this.removed) {
                 return this;
@@ -1716,6 +1722,23 @@
             res.attrs = {cx: x, cy: y, r: r, fill: "none", stroke: "#000"};
             res.type = "circle";
             $(el, res.attrs);
+            return res;
+        },
+        theForeignObject = function (svg, x, y, w, h, obj) {
+            if ((typeof w) !== 'number') {
+                obj = w;
+                w = obj.offsetWidth;
+                h = obj.offsetHeight;
+            }
+            var el = $("foreignObject");
+            svg.canvas && svg.canvas[appendChild](el);
+            var res = new Element(el, svg);
+            res.attrs = {x: x, y: y, width: w, height: h};
+            res.type = "foreignObject";
+            $(el, res.attrs);
+            if (obj) {
+                res.node.appendChild(obj);
+            }
             return res;
         },
         theRect = function (svg, x, y, w, h, r) {
@@ -2784,6 +2807,9 @@
     };
     paperproto.circle = function (x, y, r) {
         return theCircle(this, x || 0, y || 0, r || 0);
+    };
+    paperproto.foreignObject = function (x, y, w, h, obj) {
+        return theForeignObject(this, x || 0, y || 0, w || 0, h || 0, obj);
     };
     paperproto.rect = function (x, y, w, h, r) {
         return theRect(this, x || 0, y || 0, w || 0, h || 0, r || 0);
