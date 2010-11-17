@@ -2274,6 +2274,12 @@
                         h = dim.height;
                     }
                     break;
+                case "foreignObject":
+                    x = attr.x;
+                    y = attr.y;
+                    w = attr.width || 0;
+                    h = attr.height || 0;
+                    break;
                 default:
                     x = 0;
                     y = 0;
@@ -2281,6 +2287,7 @@
                     h = this.paper.height;
                     break;
             }
+            var gsPrev = gs.cssText;
             cx = (cx == null) ? x + w / 2 : cx;
             cy = (cy == null) ? y + h / 2 : cy;
             var left = cx - this.paper.width / 2,
@@ -2297,6 +2304,12 @@
             } else if (this.type == "text") {
                 os.left != (t = -left + "px") && (os.left = t);
                 os.top != (t = -top + "px") && (os.top = t);
+            } else if (this.type == "foreignObject") {
+                gs.cssText = gsPrev;
+                os.width = w + "px";
+                os.height = h + "px";
+                os.left = x + "px";
+                os.top = y + "px";
             } else {
                 gs.width != (t = this.paper.width + "px") && (gs.width = t);
                 gs.height != (t = this.paper.height + "px") && (gs.height = t);
@@ -2473,6 +2486,36 @@
             res.attrs.cy = y;
             res.attrs.r = r;
             res.setBox({x: x - r, y: y - r, width: r * 2, height: r * 2});
+            vml.canvas[appendChild](g);
+            return res;
+        };
+        theForeignObject = function (vml, x, y, w, h, obj) {
+            if ((typeof w) !== 'number') {
+                obj = w;
+                w = obj.offsetWidth;
+                h = obj.offsetHeight;
+            }
+            var g = createNode("group"),
+                o = createNode("textbox");
+            g.style.cssText = [
+              "position:absolute",
+              "left:0",
+              "top:0",
+              "width:" + vml.width + "px",
+              "height:" + vml.height + "px"
+            ].join(";") + ";";
+            g.coordsize = coordsize;
+            g.coordorigin = vml.coordorigin;
+            o[appendChild](obj);
+            g[appendChild](o);
+            o.style.cssText = "position:relative;";
+            var res = new Element(o, g, vml);
+            res.type = "foreignObject";
+            res.attrs.x = x;
+            res.attrs.y = y;
+            res.attrs.w = w;
+            res.attrs.h = h;
+            res.setBox({x: x, y: y, width: w, height: h});
             vml.canvas[appendChild](g);
             return res;
         };
